@@ -1,0 +1,15 @@
+---
+- name: restart vmware_exporter
+  systemd:
+    daemon_reload: true
+    name: vmware_exporter
+    state: restarted
+  become: true
+  tags: vmware_exporter
+
+- name: reload consul
+  systemd:
+    name: consul
+    state: reloaded
+  become: true
+  tags: vmware_exporter

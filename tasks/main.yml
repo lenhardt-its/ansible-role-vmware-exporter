@@ -1,0 +1,143 @@
+---
+- name: gather operating system variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "{{ ansible_distribution_file_variety | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}.yml"
+    - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version.split('.')[0] }}.yml"
+    - "{{ ansible_os_family | lower }}.yml"
+  become: true
+  tags: vmware_exporter
+
+- name: create system group
+  group:
+    name: "{{ vmware_exporter_system_group }}"
+    system: true
+    state: present
+  when: vmware_exporter_system_group != "root"
+  become: true
+  tags: vmware_exporter
+
+- name: create system user
+  user:
+    name: "{{ vmware_exporter_system_user }}"
+    system: true
+    shell: "/sbin/nologin"
+    group: "{{ vmware_exporter_system_group }}"
+    createhome: false
+  when: vmware_exporter_system_user != "root"
+  become: true
+  tags: vmware_exporter
+
+- name: create data directory
+  file:
+    path: "{{ vmware_exporter_config_dir }}"
+    state: directory
+    owner: "{{ vmware_exporter_system_user }}"
+    group: "{{ vmware_exporter_system_group }}"
+    mode: 0755
+  become: true
+  tags: vmware_exporter
+
+- name: ensure python3, pyOpenSSL and pip3 are installed
+  package:
+    name:
+      - python-setuptools
+      - python36
+      - python36-devel
+      - python36-pip
+      - python36-pyOpenSSL
+    state: present
+    update_cache: yes
+  environment: "{{proxy_env}}"
+  become: true
+  tags: vmware_exporter
+
+- name: ensure vmware_exporter is installed (via pip3)
+  pip:
+    name: vmware_exporter
+    executable: /bin/pip3
+    state: present
+  environment: "{{proxy_env}}"
+  become: true
+  tags: vmware_exporter
+
+- name: configure vmware_exporter
+  template:
+    src: config.yml.j2
+    dest: "{{ vmware_exporter_config_dir }}/config.yml"
+    owner: "{{ vmware_exporter_system_user }}"
+    group: "{{ vmware_exporter_system_group }}"
+    mode: 0644
+  notify: restart vmware_exporter
+  become: true
+  tags: vmware_exporter
+
+- name: copy systemd service unit
+  template:
+    src: vmware_exporter.service.j2
+    dest: /etc/systemd/system/vmware_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart vmware_exporter
+  become: true
+  tags: vmware_exporter
+
+- name: install selinux dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+  environment: "{{ proxy_env }}"
+  with_items: "{{ vmware_exporter_selinux_packages }}"
+  register: _install_packages
+  until: _install_packages is succeeded
+  retries: 5
+  delay: 2
+  when:
+    - ansible_version.full is version_compare('2.4', '>=')
+    - ansible_selinux.status == "enabled"
+  become: true
+  tags: vmware_exporter
+
+- name: allow binding to port in selinux
+  seport:
+    ports: "{{ vmware_exporter_web_listen_port }}"
+    proto: tcp
+    setype: http_port_t
+    state: present
+  when:
+    - ansible_version.full is version_compare('2.4', '>=')
+    - ansible_selinux.status == "enabled"
+  become: true
+  tags: vmware_exporter
+
+- name: allow access to port on firewalld
+  firewalld:
+    port: "{{ vmware_exporter_web_listen_port }}/tcp"
+    permanent: yes
+    state: true
+  when: vmware_exporter_firewalld_state == "enabled"
+  register: "_firewalld_vmware_exporter_state"
+  become: true
+  tags: vmware_exporter
+
+- name: reload firewalld service
+  service:
+    name: firewalld
+    state: reloaded
+  when: _firewalld_vmware_exporter_state['changed']
+  become: true
+  tags: vmware_exporter
+
+- name: ensure service is started and enabled
+  systemd:
+    daemon_reload: true
+    name: vmware_exporter
+    state: started
+    enabled: true
+  become: true
+  tags: vmware_exporter

@@ -1,0 +1,40 @@
+---
+proxy_env: {}
+vmware_exporter_web_listen_port: 9272
+vmware_exporter_firewalld_state: "disabled"
+vmware_exporter_config_dir: "/etc/vmware_exporter"
+vmware_exporter_binary_local_dir: "/usr/local/bin"
+vmware_exporter_create_consul_agent_service: true
+vmware_exporter_system_user: "{{ prometheus_user | default('prometheus') }}"
+vmware_exporter_system_group: "{{ prometheus_group | default('prometheus') }}"
+vmware_exporter_targets: {}
+#  - default:
+#      vsphere_host: "vcenter"
+#      vsphere_user: "user"
+#      vsphere_password: "password"
+#      ignore_ssl: False
+#      specs_size: 5000
+#      fetch_custom_attributes: True
+#      fetch_tags: True
+#      fetch_alarms: True
+#      collect_only:
+#        vms: True
+#        snapshots: True
+#        vmguests: True
+#        datastores: True
+#        hosts: True
+#  - vcenter02:
+#      vsphere_host: "slowvc.example.com"
+#      vsphere_user: "administrator@vsphere.local"
+#      vsphere_password: "password"
+#      ignore_ssl: True
+#      specs_size: 5000
+#      fetch_custom_attributes: True
+#      fetch_tags: True
+#      fetch_alarms: True
+#      collect_only:
+#        vms: False
+#        snapshots: False
+#        vmguests: False
+#        datastores: True
+#        hosts: False
