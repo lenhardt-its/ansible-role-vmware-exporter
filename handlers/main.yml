@@ -6,10 +6,3 @@
     state: restarted
   become: true
   tags: vmware_exporter
-
-- name: reload consul
-  systemd:
-    name: consul
-    state: reloaded
-  become: true
-  tags: vmware_exporter

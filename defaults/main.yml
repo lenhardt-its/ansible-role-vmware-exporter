@@ -1,10 +1,9 @@
 ---
 proxy_env: {}
 vmware_exporter_web_listen_port: 9272
-vmware_exporter_firewalld_state: "disabled"
-vmware_exporter_config_dir: "/etc/vmware_exporter"
-vmware_exporter_binary_local_dir: "/usr/local/bin"
-vmware_exporter_create_consul_agent_service: true
+vmware_exporter_allow_firewall: false
+vmware_exporter_config_dir: /etc/vmware_exporter
+vmware_exporter_binary_local_dir: /usr/local/bin
 vmware_exporter_system_user: "{{ prometheus_user | default('prometheus') }}"
 vmware_exporter_system_group: "{{ prometheus_group | default('prometheus') }}"
 vmware_exporter_targets: {}
