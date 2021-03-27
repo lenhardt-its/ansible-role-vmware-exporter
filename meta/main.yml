@@ -24,7 +24,5 @@ galaxy_info:
   - linux
   - monitoring
   - prometheus
-  - vmware
-  - vmware_exporter
   - exporter
 dependencies: []
