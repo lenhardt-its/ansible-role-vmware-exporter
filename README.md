@@ -91,7 +91,7 @@ All variables which can be overridden are stored in [defaults/main.yml](defaults
 - hosts: all
   become: yes
   roles:
-    - onkeldom.vmware-exporter
+    - onkeldom.vmware_exporter
 ```
 
 ## Contributing
