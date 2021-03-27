@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  role_name: vmware-exporter
+  role_name: vmware_exporter
   author: Dominik Lenhardt
   description: Ansible role for installing and configuring VMware Exporter
   license: "MIT"
