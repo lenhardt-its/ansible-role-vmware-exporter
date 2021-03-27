@@ -93,6 +93,7 @@
     capability: CAP_NET_BIND_SERVICE+ep
     state: present
   when: vmware_exporter_web_listen_port <= 1024
+  tags: vmware_exporter
 
 - name: allow binding to port in selinux
   seport:
@@ -127,22 +128,10 @@
   notify: reload ufw
   become: true
   tags: vmware_exporter
-  register: "_firewalld_vmware_exporter_state"
   when:
     - "'active' in _ufw_status.stdout"
     - ansible_os_family == 'Debian'
     - vmware_exporter_allow_firewall
-
-- name: reload ufw
-  systemd:
-    name: ufw
-    state: reloaded
-  when:
-    - _firewalld_vmware_exporter_state['changed']
-    - ansible_os_family == 'Debian'
-    - vmware_exporter_allow_firewall
-  become: true
-  tags: vmware_exporter
 
 - name: configure firewalld
   firewalld:
@@ -152,18 +141,7 @@
   when:
     - vmware_exporter_allow_firewall
     - ansible_os_family == 'RedHat'
-  register: "_firewalld_vmware_exporter_state"
-  become: true
-  tags: vmware_exporter
-
-- name: reload firewalld
-  systemd:
-    name: firewalld
-    state: reloaded
-  when:
-    - vmware_exporter_allow_firewall
-    - _firewalld_vmware_exporter_state['changed']
-    - - ansible_os_family == 'RedHat'
+  notify: reload firewalld
   become: true
   tags: vmware_exporter
 
