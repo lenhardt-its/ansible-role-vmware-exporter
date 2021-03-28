@@ -133,7 +133,9 @@
     port: "{{ vmware_exporter_web_listen_port }}"
     proto: tcp
     state: enabled
-    comment: "vmware_exporter"
+    comment: "VMware Exporter"
+  changed_when: False
+  ignore_errors: True
   notify: reload ufw
   become: true
   tags: vmware_exporter
@@ -147,6 +149,8 @@
     port: "{{ vmware_exporter_web_listen_port }}/tcp"
     permanent: yes
     state: true
+  changed_when: False
+  ignore_errors: True
   when:
     - "'running' in _firewalld_status.stdout"
     - vmware_exporter_allow_firewall
