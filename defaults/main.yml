@@ -1,7 +1,6 @@
 ---
 proxy_env: {}
 vmware_exporter_web_listen_port: 9272
-vmware_exporter_allow_firewall: false
 vmware_exporter_config_dir: /etc/vmware_exporter
 vmware_exporter_binary_local_dir: /usr/local/bin
 vmware_exporter_system_user: "{{ prometheus_user | default('prometheus') }}"

@@ -19,7 +19,6 @@ Deploy and manage prometheus [VMware exporter](https://github.com/pryorda/vmware
 ## Requirements
 
 - Ansible >= 2.9 (It might work on previous versions, but we cannot guarantee it)
-- Community Packages: `ansible-galaxy collection install community.general`
 
 ## Role Variables
 
@@ -29,7 +28,6 @@ All variables which can be overridden are stored in [defaults/main.yml](defaults
 | -------------- | ------------- | -----------------------------------|
 | `proxy_env` | {} | Proxy environment variables |
 | `vmware_exporter_web_listen_port` | 9272 | Exporter port |
-| `vmware_exporter_allow_firewall` | false | Enabled/Disabled Firewalld and open the port |
 | `vmware_exporter_config_dir` | /etc/vmware_exporter | Configuration folder |
 | `vmware_exporter_binary_local_dir` | /usr/local/bin | Exporter binary path |
 | `vmware_exporter_create_consul_agent_service` | true | Add consul-agent service snipped |

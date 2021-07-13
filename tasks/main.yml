@@ -1,17 +1,4 @@
 ---
-- name: gather operating system variables
-  include_vars: "{{ item }}"
-  with_first_found:
-    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
-    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
-    - "{{ ansible_distribution_file_variety | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
-    - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
-    - "{{ ansible_distribution | lower }}.yml"
-    - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version.split('.')[0] }}.yml"
-    - "{{ ansible_os_family | lower }}.yml"
-  become: true
-  tags: vmware_exporter
-
 - name: create system group
   group:
     name: "{{ vmware_exporter_system_group }}"
@@ -84,78 +71,6 @@
     group: root
     mode: 0644
   notify: restart vmware_exporter
-  become: true
-  tags: vmware_exporter
-
-- name: enable capabilities to ports lower than port 1024
-  capabilities:
-    path: "{{ vmware_exporter_binary_install_dir }}/vmware_exporter"
-    capability: CAP_NET_BIND_SERVICE+ep
-    state: present
-  when: vmware_exporter_web_listen_port <= 1024
-  tags: vmware_exporter
-
-- name: allow binding to port in selinux
-  seport:
-    ports: "{{ vmware_exporter_web_listen_port }}"
-    proto: tcp
-    setype: http_port_t
-    state: present
-  when:
-    - ansible_version.full is version_compare('2.4', '>=')
-    - ansible_selinux.status == "enabled"
-  become: true
-  tags: vmware_exporter
-
-- name: check whether ufw status is active
-  command: "ufw status"
-  changed_when: False
-  ignore_errors: True
-  register: _ufw_status
-  become: true
-  when:
-    - vmware_exporter_allow_firewall
-    - ansible_os_family == 'Debian'
-  tags: vmware_exporter
-
-- name: check whether firewalld status is active
-  command: "firewall-cmd --state"
-  changed_when: False
-  ignore_errors: True
-  register: _firewalld_status
-  become: true
-  when: ansible_os_family == 'RedHat'
-  tags: vmware_exporter
-
-- name: configure ufw
-  community.general.ufw:
-    rule: allow
-    port: "{{ vmware_exporter_web_listen_port }}"
-    proto: tcp
-    state: enabled
-    comment: "VMware Exporter"
-  changed_when: False
-  ignore_errors: True
-  notify: reload ufw
-  become: true
-  tags: vmware_exporter
-  when:
-    - "'active' in _ufw_status.stdout"
-    - ansible_os_family == 'Debian'
-    - vmware_exporter_allow_firewall
-
-- name: configure firewalld
-  firewalld:
-    port: "{{ vmware_exporter_web_listen_port }}/tcp"
-    permanent: yes
-    state: true
-  changed_when: False
-  ignore_errors: True
-  when:
-    - "'running' in _firewalld_status.stdout"
-    - vmware_exporter_allow_firewall
-    - ansible_os_family == 'RedHat'
-  notify: reload firewalld
   become: true
   tags: vmware_exporter
 
